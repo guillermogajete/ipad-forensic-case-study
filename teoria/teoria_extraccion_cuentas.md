@@ -1,69 +1,51 @@
-# Teoria Extraccion Cuentas
+## Teoría y Metodología: Extracción de Cuentas y Evidencias
 
-1. Cuentas en el dispositivo
+Este documento describe la estructura lógica y la ubicación de los artefactos forenses críticos en entornos iPadOS, orientados a la extracción y análisis de cuentas de usuario, credenciales y comunicaciones.
 
-Ruta principal: /private/var/mobile/Library/Accounts/Accounts3.sqlite.
+## 1. Gestión de Cuentas en el Dispositivo
 
-1.1Accounts3.sqlite
+La persistencia de las cuentas configuradas se localiza principalmente en la base de datos de gestión de cuentas de Apple.
 
-1.2 Tabla ZACCOUNT
+* **Ruta principal:** `/private/var/mobile/Library/Accounts/Accounts3.sqlite`
 
-Tabla principal de cuentas del dispositivo (Apple ID, iCloud, etc.).
+## 1.1. Análisis de la Tabla ZACCOUNT
 
-Campos
+Esta tabla constituye el núcleo de la identidad del usuario en el sistema.
 
-1. Los campos absolutamente imprescindibles:
+### Campos de valor crítico:
+* **ZUSERNAME**: Campo primario. Contiene el identificador de cuenta (ej. correo electrónico o Apple ID).
+* **ZACCOUNTDESCRIPTION**: Etiqueta descriptiva asignada por el usuario o el sistema (ej. "iCloud", "Trabajo").
+* **ZACCOUNTTYPE**: Clave foránea que referencia a la tabla ZACCOUNTTYPE. Es indispensable para determinar el protocolo de servicio (CardDAV, CalDAV, IMAP, Exchange).
+* **ZDATE**: Timestamp en formato Mac Absolute Time (segundos desde el 01/01/2001). Requiere normalización para su inclusión en la cronología del informe.
+* **ZACTIVE / ZAUTHENTICATED**: Indicadores booleanos (0/1) que validan el estado operativo de la cuenta.
+* **ZIDENTIFIER**: GUID único. Vital para correlacionar archivos o directorios huérfanos con una cuenta específica.
+* **ZOWNINGBUNDLEID**: Identificador del paquete (Bundle ID) de la aplicación que gestiona la cuenta (ej. com.apple.account.appleaccount).
 
-ZUSERNAME: El más importante de todos. Aquí es donde encontrarás el dato real de la cuenta, como la dirección de correo electrónico (ej. usuario@gmail.com) o el ID de Apple.
+## 2. Gestión de Credenciales (Keychain)
 
-ZACCOUNTDESCRIPTION: Es el nombre "amigable" o la etiqueta que el usuario (o el iPad automáticamente) le asignó a la cuenta. Te ayudará a contextualizar si dice "Trabajo", "iCloud", "Personal", etc.
+El Llavero de Apple almacena secretos, tokens de sesión y contraseñas.
 
-ZACCOUNTTYPE: Es fundamental para cruzar datos. Contiene un número (una clave foránea) que deberás buscar en la tabla ZACCOUNTTYPE para saber exactamente de qué servicio se trata (CardDAV para contactos, CalDAV para calendarios, Exchange, IMAP, etc.).
+* **Ruta principal:** `/private/var/Keychains/keychain-2.db`
 
-2. Campos de alto valor para la investigación (Línea de tiempo y estado):
+### Consideraciones sobre la inaccesibilidad (Justificación Forense)
+* **Cifrado vía Secure Enclave**: La integridad del Keychain está ligada al hardware. Sin el código de desbloqueo (PIN) del dispositivo, las claves maestras permanecen fuera del alcance, haciendo imposible la desencriptación.
+* **Limitaciones de la Extracción**: Las extracciones lógicas o copias de seguridad estándar sin contraseña suelen omitir los datos sensibles del Keychain por políticas de seguridad del sistema operativo.
 
-ZDATE: Marca de tiempo de cuándo se añadió o modificó la cuenta. Ojo con esto: como indican las fuentes respecto a otras bases de datos de Apple, estos tiempos suelen guardarse en formato Mac Absolute Time (segundos transcurridos desde el 1 de enero de 2001). Necesitarás convertir este valor para poner una fecha legible en tu informe.
+## 3. Mensajería y Comunicaciones
 
-ZACTIVE y ZAUTHENTICATED: Te indican (normalmente con un 1 para Sí y un 0 para No) si la cuenta está actualmente habilitada en el iPad y si el usuario ha iniciado sesión correctamente.
+### 3.1. Aplicaciones Nativas
+* **iMessage/SMS**: `/private/var/mobile/Library/SMS/sms.db` (Tablas: message, handle, chat).
+* **Llamadas (FaceTime/Teléfono)**: `/private/var/mobile/Library/CallHistoryDB/CallHistory.storedata`.
 
-ZIDENTIFIER: Es un identificador único (GUID) de la cuenta. Si más adelante en tu análisis forense encuentras carpetas o archivos huérfanos con este código largo, sabrás que pertenecen exactamente a esta cuenta.
+### 3.2. Aplicaciones de Terceros (Sandbox)
+El acceso a aplicaciones externas requiere una navegación por el árbol de directorios de contenedores:
+1. **Mapeo**: Consultar `/private/var/mobile/Library/Caches/com.apple.mobile.installation.plist` para identificar el GUID de la aplicación.
+2. **Acceso**: Dirigirse a `/private/var/mobile/Containers/Data/Application/<GUID>/Documents/` para localizar las bases de datos de usuario (ej. ChatStorage.sqlite en WhatsApp).
 
-ZOWNINGBUNDLEID: Te mostrará el nombre del paquete de la aplicación responsable de gestionar esa cuenta (ej. com.apple.account.icloud).
+## 4. Consideraciones Técnicas y Limitaciones Forenses
 
-Ruta secundaria (Info del dispositivo/Apple ID): /private/var/root/Library/Lockdown/data_ark.plist.
+Para garantizar la validez del informe, se deben incluir las siguientes justificaciones en caso de ausencia de hallazgos:
 
-Pasos a seguir: Utiliza un visor de bases de datos SQLite para abrir el archivo Accounts3.sqlite. Aquí encontrarás un listado con todas las cuentas configuradas en el iPad, como el ID de Apple (iCloud), correos electrónicos (Gmail, Outlook, etc.) y cuentas de redes sociales.
-
-Por qué podrías no encontrarlo: Si solo tienes acceso a una extracción básica (estado bloqueado BFU), es posible que los archivos estén cifrados. Además, si el usuario no vinculó correos en la app nativa de Apple y usó navegadores web, no aparecerán en esta base de datos.
-
-2. Contraseñas de dichas cuentas
-
-Ruta principal: /private/var/Keychains/keychain-2.db (conocido como el Llavero o Keychain de Apple).
-
-Pasos a seguir: Debes realizar una "extracción del sistema de archivos completo (FFS)" que incluya la extracción específica del Keychain. Este archivo almacena contraseñas de Wi-Fi, cuentas de correo y tokens de acceso de aplicaciones.
-
-Por qué podrías no encontrarlo (Justificación para el informe):
-
-Cifrado severo: El llavero está protegido por el Secure Enclave del hardware de Apple. Si no posees el código de desbloqueo (PIN) del iPad, las claves de cifrado necesarias para leer este archivo no estarán disponibles en la memoria y será imposible descifrar las contraseñas.
-
-Extracción lógica: Si el método que utilizaste fue una copia de seguridad normal de iTunes (sin contraseña de respaldo) o una extracción lógica simple, el sistema operativo de Apple bloquea por seguridad la exportación de las contraseñas.
-
-3. Mensajes y llamadas
-
-Rutas de aplicaciones nativas:
-
-SMS e iMessage: /private/var/mobile/Library/SMS/sms.db (revisa las tablas message y handle).
-
-Llamadas (FaceTime/Teléfono): /private/var/mobile/Library/CallHistoryDB/CallHistory.storedata.
-
-Ruta de aplicaciones de terceros (WhatsApp, Skype, etc.): En iPadOS, las apps instaladas por el usuario se guardan en carpetas con nombres aleatorios (GUID).
-
-Paso previo: Para saber en qué carpeta está la app que buscas, primero abre /private/var/mobile/Library/Caches/com.apple.mobile.installation.plist. Ahí verás a qué app corresponde cada carpeta.
-
-Paso final: Ve a /private/var/mobile/Containers/Data/Application/<CARPETA_DE_LA_APP>/Documents/ y busca el archivo .sqlite principal (por ejemplo, ChatStorage.sqlite para WhatsApp).
-
-Por qué podrías no encontrarlo (Justificación para el informe):
-
-Borrados irrecuperables: Si el usuario borró los mensajes, la memoria Flash (NAND) del iPad ejecuta un proceso llamado "Recolección de basura" (Garbage Collection) que destruye los datos físicamente de forma muy rápida. A diferencia de los ordenadores antiguos, en los iPad modernos la recuperación de datos borrados es prácticamente imposible.
-
-Restricción de Clase de Protección: Las bases de datos de mensajes y correos suelen tener "Protección Completa" (Clase A) o "Protección hasta la primera autenticación" (Clase C). Esto significa que si el iPad fue reiniciado y nadie introdujo el PIN (estado BFU), los mensajes están cifrados a nivel de sistema de archivos y no podrás leerlos.
+* **Procesos de Borrado (NAND Flash)**: En sistemas iPadOS modernos, el proceso de Garbage Collection y el comando TRIM eliminan físicamente los datos borrados, invalidando las técnicas clásicas de recuperación de bloques no asignados.
+* **Clases de Protección de Archivos**: Las bases de datos críticas operan bajo clases de protección (Clase A o C). Si el dispositivo se encuentra en estado BFU (Before First Unlock), los archivos permanecen cifrados y son inaccesibles incluso con una extracción de sistema de archivos completo.
+* **Acceso a Navegador**: Los datos no sincronizados con las aplicaciones nativas (mediante uso exclusivo de navegadores web) no se verán reflejados en las bases de datos de cuentas, limitando el rastro a historiales de navegación o cachés web.
