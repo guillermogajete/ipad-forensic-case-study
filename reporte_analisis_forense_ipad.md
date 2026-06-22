@@ -22,7 +22,7 @@ El 20/04/2026 a las 19:43 se transfirió la evidencia a la carpeta de trabajo:
 Ciberseguridad\Analisis Forense\Taller de Análisis Forense Informático\Móviles 5-7 (iOS y iPadOS)\Caso_Ipad
 ```
 
-Se creó la carpeta `fichero_ipad_01052026` para exportar y analizar los datos del dispositivo.
+Se creó la carpeta `fichero_ipad_xxxxxxx` para exportar y analizar los datos del dispositivo.
 
 ### Estructura de la carpeta de evidencias
 
@@ -54,17 +54,17 @@ La tabla `ZACCOUNT` contiene las cuentas configuradas en el dispositivo. Los hal
 
 | Campo | Valor |
 |---|---|
-| `ZUSERNAME` | `vr.carlosiii@gmail.com` |
+| `ZUSERNAME` | `xxxxxxx@gmail.com` |
 | `ZACCOUNTDESCRIPTION` | iCloud |
 | `ZOWNINGBUNDLEID` | `com.apple.account.AppleAccount` |
-| `ZIDENTIFIER` (UUID) | `BE87C54F-B742-4394-9A56-E9E5933CE796` |
-| `ZDATE` (timestamp) | `717583988.297471` |
+| `ZIDENTIFIER` (UUID) | `BE87C54F-B742-4394-9A56-xxxxxxxx` |
+| `ZDATE` (timestamp) | `7xxxx3988.xxxxxxx` |
 
 **Resolución de timestamp:**  
 `717583988.297471` (Apple Absolute Time) → **2023-09-28 08:53:08 UTC**
 
 **Conclusión:**
-- **Cuenta principal:** `vr.carlosiii@gmail.com`
+- **Cuenta principal:** `xxxxxxxxx@gmail.com`
 - **Dispositivo:** iPad 14
 - **Última configuración:** 28/09/2023 08:53:08 UTC
 
@@ -97,9 +97,9 @@ Se utilizó el script [`decodificar_nskeyed_es.py`](scripts/decodificar_nskeyed_
 
 | Clave (`ZKEY`) | Valor |
 |---|---|
-| `primaryEmail` | `vr.carlosiii@gmail.com` |
-| `firstName` | VR1 |
-| `lastName` | Carlos III |
+| `primaryEmail` | `xxxxxxxx@gmail.com` |
+| `firstName` | xxx |
+| `lastName` | xxxxx |
 | `primaryAccount` | `true` |
 | `regionInfo` | España |
 | `personID` (Apple ID) | `21130402639` |
@@ -161,7 +161,7 @@ No se encontró evidencia de que se hubieran borrado llamadas.
 
 ## 4. Extracción de Archivos Multimedia
 
-El 01/05/2026 se realizó la extracción de archivos del dispositivo mediante **iBackup Viewer**, volcando los resultados a la carpeta `media_ipad14_01052026`.
+El 01/05/2026 se realizó la extracción de archivos del dispositivo mediante **iBackup Viewer**, volcando los resultados a la carpeta `media_ipad14_xxxxxxx`.
 
 ### Archivos extraídos
 
@@ -199,7 +199,7 @@ El 01/05/2026 se realizó la extracción de archivos del dispositivo mediante **
 | Fecha de captura | 2024-02-14 16:21:03 UTC |
 | Dispositivo | Apple iPad (8th generation) |
 | Rotación | 90° |
-| Content Identifier | `9EDD30F4-9E7B-4B3D-B9F0-16EA96BCC1F5` |
+| Content Identifier | `xxxxxx-9E7B-4B3D-B9F0-xxxxxxxx` |
 | GPS | No presente |
 
 El `Content Identifier` coincide con el de `IMG_0004.HEIC`, confirmando que ambos archivos pertenecen al mismo momento de captura (Live Photo).
@@ -221,7 +221,7 @@ El `Content Identifier` coincide con el de `IMG_0004.HEIC`, confirmando que ambo
 
 ## 5. Notas
 
-Se localizó una nota creada el **14/02/2024 a las 17:21:50** con el nombre **"PRUEBA JUAN JOSÉ ESPI"**. La nota no contenía contenido adicional relevante.
+Se localizó una nota creada el **14/02/2024 a las 17:21:50** con el nombre **"PRUEBA XXXXX"**. La nota no contenía contenido adicional relevante.
 
 ---
 
@@ -319,7 +319,5 @@ Desde **iOS 11**, Apple no almacena en sus bases de datos locales los usuarios d
 
 | Carpeta raíz | Contenido |
 |---|---|
-| `fichero_ipad_01052026/` | Datos exportados del iPad 14 |
+| `fichero_ipad_xxxxx/` | Datos exportados del iPad 14 |
 | `Caso_Ipad/` | Carpeta principal del caso |
-
-*Hash de la carpeta `fichero_ipad_01052026` y `Caso_Ipad` pendiente de cálculo al cierre del caso.*
