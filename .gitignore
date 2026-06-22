@@ -1,0 +1,26 @@
+# OS
+Thumbs.db
+.DS_Store
+*.swp
+*.swo
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+venv/
+.env
+
+# Forensic artifacts (no subir datos sensibles reales)
+*.sqlite
+*.sqlitedb
+*.plist
+*.db
+*.db-shm
+*.db-wal
+keychain-backup.plist
+
+# Evidence screenshots (añadir manualmente las que sean públicas)
+evidencias/*.txt
+evidencias/tmp/
