@@ -31,10 +31,10 @@ python decodificar_nskeyed_es.py
 ### Ejemplo de salida
 
 ```
-🔍 DECODIFICADOR FORENSE UNIVERSAL ZVALUE
+DECODIFICADOR FORENSE UNIVERSAL ZVALUE
 ======================================================================
 
-📌 VALOR REAL DECODIFICADO:
+VALOR REAL DECODIFICADO:
 {'primaryEmail': 'xxxxxx@gmail.com', 'primaryAccount': True,
  'firstName': 'xxxx', 'lastName': 'xxxx', 'regionInfo': 'España',
  'personID': '211xxxxx', 'usesCloudDocs': True}
