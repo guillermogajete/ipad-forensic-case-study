@@ -9,8 +9,8 @@
 | Dato | Valor |
 |---|---|
 | Dispositivo | iPad 14 (8th generation), iOS 14.4 |
-| Correo principal | `vr.carlosiii@gmail.com` |
-| Nombre asociado | VR1 Carlos III |
+| Correo principal | `xxxxxxx@gmail.com` |
+| Nombre asociado | xxx xxx III |
 | Apple ID | `21130402639` |
 | UUID de cuenta | `BE87C54F-B742-4394-9A56-E9E5933CE796` |
 | Última configuración | 28/09/2023 08:53:08 UTC |
@@ -31,7 +31,7 @@ El dispositivo presentaba una **actividad mínima de usuario**:
 | Llamadas | Sin registros |
 | Contactos | Sin datos |
 | Redes sociales | Sin aplicaciones instaladas |
-| Notas | 1 nota: "PRUEBA JUAN JOSÉ ESPI" (14/02/2024) |
+| Notas | 1 nota: "PRUEBA xxxx xxxx" (14/02/2024) |
 | Archivos multimedia | 3 archivos (2 de un mismo Live Photo, 1 captura) |
 | Archivos eliminados | No se detectaron eliminaciones |
 
