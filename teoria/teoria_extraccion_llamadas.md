@@ -1,105 +1,40 @@
-# Teoria Extraccion Llamadas
+## Teoría y Metodología: Extracción de Historial de Llamadas
 
-Es la única base de datos que contiene evidencia real.
+Este documento detalla la estructura lógica de la base de datos de llamadas en entornos iPadOS/iOS, enfocándose en la identificación de registros de comunicaciones y la interpretación de hallazgos negativos.
 
-Dentro debes revisar:
+## 1. Ruta del Artefacto
+* **Archivo:** `CallHistory.storedata`
+* **Ruta:** `/private/var/mobile/Library/CallHistoryDB/CallHistory.storedata`
 
-Tabla
+## 2. Análisis de Tablas Principales
 
-Contenido
+La integridad de la extracción depende de la correcta interpretación de las tablas contenidas en la base de datos.
 
-Importancia
+| Tabla | Contenido | Importancia |
+| :--- | :--- | :--- |
+| `ZCALLRECORD` | Llamadas (entrantes, salientes, perdidas) | Imprescindible |
+| `ZCALLRECORDMETADATA` | Detalles extendidos (duración, flags) | Importante |
+| `ZCONTACT` | Vínculos con la agenda (si aplica) | Opcional |
+| `ZFACE` | Registros de llamadas FaceTime | Situacional |
+| `Z_METADATA` | Versión del esquema y sincronización | Documentación |
 
-ZCALLRECORD
 
-Cada llamada (entrante, saliente, perdida)
 
-⭐ Imprescindible
+## 3. Interpretación de Hallazgos y Resultados
 
-ZCALLRECORDMETADATA
+En caso de que las tablas `ZCALLRECORD` y `ZCALLRECORDMETADATA` no contengan registros, es imperativo realizar una verificación de consistencia antes de declarar el historial como inexistente.
 
-Información adicional (duración, flags)
+## 4. Declaración para Informe Pericial (Hallazgo Negativo)
 
-⭐ Importante
+> "Tras el análisis técnico de la base de datos `CallHistory.storedata`, se concluye que el dispositivo no contiene registros de llamadas en el historial local. No se han identificado llamadas entrantes, salientes, perdidas ni registros de FaceTime. La estructura de la base de datos se confirma vacía."
 
-ZCONTACT
+## 5. Posibles Causas Justificadas
 
-Contactos asociados a llamadas
+* **Gestión del Usuario**: Eliminación manual del historial de llamadas.
+* **Estado del Dispositivo**: Restauración a valores de fábrica o dispositivo nuevo sin uso previo para llamadas.
+* **Sincronización iCloud**: El historial de llamadas está sincronizado exclusivamente con la nube y no posee persistencia local en el almacenamiento del iPad.
+* **Uso de Dispositivo**: Ausencia de uso del dispositivo para servicios de telefonía o FaceTime.
 
-Opcional
+## 6. Consideraciones Avanzadas
 
-ZFACE
-
-FaceTime
-
-Si aplica
-
-Z_METADATA
-
-Versión del esquema
-
-Documentación
-
-Z_PRIMARYKEY
-
-Control interno
-
-No relevante
-
-Nota: Los nombres pueden variar ligeramente según versión, pero en iOS 14.x siempre existe ZCALLRECORD.
-
-Solo revisarla si la principal está corrupta.
-
-Normalmente no aporta nada.
-
-Útil para documentar:
-
-versión del esquema
-
-fecha de última sincronización
-
-No contiene llamadas.
-
-Solo útil si:
-
-la base de datos está vacía
-
-sospechas de borrado reciente
-
-necesitas reconstrucción avanzada
-
-Pero:
-
-👉 No es necesario para un informe estándar.
-
-Si revisaste la base de datos y:
-
-ZCALLRECORD está vacía
-
-ZCALLRECORDMETADATA está vacía
-
-Entonces puedes afirmar en tu informe:
-
-El dispositivo no contiene registros de llamadas en el historial local. No se han encontrado llamadas entrantes, salientes, perdidas ni FaceTime. La base de datos CallHistory.storedata está vacía.
-
-Esto puede deberse a:
-
-El usuario borró el historial manualmente
-
-El dispositivo fue restaurado
-
-El historial se sincroniza solo con iCloud y no se guarda localmente
-
-El usuario nunca realizó llamadas desde ese dispositivo
-
-Puedo generarte:
-
-Una tabla completa de las tablas reales de CallHistory.storedata
-
-Un texto listo para tu informe pericial
-
-Un diagrama ER de la base de datos de llamadas
-
-Un script Python para extraer llamadas automáticamente
-
-Un análisis de si hubo borrado intencional del historial
+Solo en casos de sospecha de borrado intencional o corrupción de datos, se recomienda proceder con una reconstrucción avanzada. Sin embargo, para un informe forense estándar, el análisis de las tablas principales es suficiente para certificar la ausencia de evidencia.
