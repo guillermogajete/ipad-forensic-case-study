@@ -35,9 +35,9 @@ python decodificar_nskeyed_es.py
 ======================================================================
 
 📌 VALOR REAL DECODIFICADO:
-{'primaryEmail': 'vr.carlosiii@gmail.com', 'primaryAccount': True,
- 'firstName': 'VR1', 'lastName': 'Carlos III', 'regionInfo': 'España',
- 'personID': '21130402639', 'usesCloudDocs': True}
+{'primaryEmail': 'xxxxxx@gmail.com', 'primaryAccount': True,
+ 'firstName': 'xxxx', 'lastName': 'xxxx', 'regionInfo': 'España',
+ 'personID': '211xxxxx', 'usesCloudDocs': True}
 
 ✔ Decodificación completada
 ```
@@ -79,7 +79,7 @@ buscar_cuentas_forense("pass.plist.xml")
 ============================================================
  CORREOS ELECTRÓNICOS ENCONTRADOS:
 ============================================================
-  ✅ vr.carlosiii@gmail.com
+  xxxxxxxi@gmail.com
 
 ============================================================
  SERVICIOS/APP IDENTIFICADAS:
@@ -90,7 +90,7 @@ buscar_cuentas_forense("pass.plist.xml")
 ============================================================
  POSIBLES USUARIOS/NOMBRES DE CUENTA:
 ============================================================
-  👤 vr.carlosiii
+  👤 xxxxxx
 
 [+] Resultados guardados en: resultados_busqueda.txt
 ```
@@ -107,4 +107,4 @@ buscar_cuentas_forense("pass.plist.xml")
 
 - Los scripts están diseñados para entornos forenses controlados
 - No modifican los archivos de entrada
-- Las fechas Apple Absolute Time se convierten usando el epoch `978307200` (1/1/2001)
+- Las fechas Apple Absolute Time se convierten usando el epoch `9xxxxxxxx` (1/1/2001)
