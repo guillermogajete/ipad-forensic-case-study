@@ -1,4 +1,4 @@
-# iPad Forensic Case Study
+# Caso Práctico Forense: iPad
 
 [![Forensic Tools](https://img.shields.io/badge/Forensic-iBackup%20Viewer%201.6.4-blue)](https://github.com/topics/ios-forensic)
 [![SQLite](https://img.shields.io/badge/SQLite-DB%20Browser%203.13.1-green)](https://sqlitebrowser.org/)
@@ -7,159 +7,112 @@
 [![iOS](https://img.shields.io/badge/iOS-14.4-lightgrey)](https://developer.apple.com/ios/)
 [![License](https://img.shields.io/badge/License-MIT-red)](LICENSE)
 
-> **Case study forense:** Extracción y análisis de datos de un iPad 14 (8th generation) con iOS 14.4.  
+> **Caso práctico forense:** Extracción y análisis de datos de un iPad (8ª generación) con iOS 14.4.  
 > Realizado como parte de la formación en **Análisis Forense Informático** — Especialidad en dispositivos móviles iOS/iPadOS.
 
 ---
 
-## Table of Contents
+## Índice
 
-- [Overview](#overview)
-- [Evidence Acquired](#evidence-acquired)
-- [Key Findings](#key-findings)
-- [Tools Used](#tools-used)
-- [Repository Structure](#repository-structure)
-- [Methodology](#methodology)
-- [Usage](#usage)
-- [License](#license)
-
----
-
-## Overview
-
-This repository documents a complete forensic acquisition and analysis of an **iPad 14 (8th generation)** running **iOS 14.4**. The examination was conducted using industry-standard forensic tools to extract and analyze data from a physical backup of the device.
-
-### Objectives
-
-- Perform a forensic acquisition of the iPad using **iBackup Viewer 1.6.4.90**
-- Extract and analyze accounts, contacts, messages, call logs, media files, and notes
-- Examine deleted data traces in system databases (`SQLite`)
-- Document findings with professional forensic methodology
+- [Descripción General](#descripción-general)
+- [Evidencias Adquiridas](#evidencias-adquiridas)
+- [Hallazgos Clave](#hallazgos-clave)
+- [Herramientas Utilizadas](#herramientas-utilizadas)
+- [Estructura del Repositorio](#estructura-del-repositorio)
+- [Metodología](#metodología)
+- [Uso](#uso)
+- [Licencia](#licencia)
 
 ---
 
-## Evidence Acquired
+## Descripción General
 
-| Artifact | Database / Source | Status |
+Este repositorio documenta la adquisición y el análisis forense completo de un **iPad (8ª generación)** con **iOS 14.4**. El examen se llevó a cabo utilizando herramientas forenses estándar del sector para extraer y analizar datos a partir de una copia de seguridad física (*backup*) del dispositivo.
+
+### Objetivos
+
+- Realizar la adquisición forense del iPad utilizando **iBackup Viewer 1.6.4.90**.
+- Extraer y analizar cuentas, contactos, mensajes, registros de llamadas, archivos multimedia y notas.
+- Examinar trazas de datos eliminados en las bases de datos del sistema (`SQLite`).
+- Documentar los hallazgos siguiendo una metodología forense profesional.
+
+---
+
+## Evidencias Adquiridas
+
+| Artefacto | Base de Datos / Origen | Estado |
 |---|---|---|
-| iCloud account | `Accounts3.sqlite` — `ZACCOUNT` | ✅ Identified |
-| Account properties | `ZACCOUNTPROPERTY` (NSKeyedArchiver) | ✅ Decoded |
-| Account types & credentials | `ZACCOUNTTYPE` | ✅ Mapped |
-| SMS / iMessage | `sms.db` | ❌ Empty (no messages) |
-| Call history | `CallHistory.storedata` | ❌ Empty (no calls) |
-| Photos & video | File system + `Photos.sqlite` | ✅ 3 files extracted |
-| Metadata (EXIF) | `IMG_0004.HEIC`, `IMG_0004.MOV`, `IMG_0005.PNG` | ✅ Analyzed |
-| Notes | iBackup Viewer | ✅ 1 note found |
-| Contacts | `AddressBook.sqlitedb` | ❌ Empty |
-| Deleted media | `Photos.sqlite` — `ZTRASHEDSTATE` | ✅ No deletions found |
-| Keychain credentials | `keychain-backup.plist` | 🔒 Encrypted (AES-GCM) |
+| Cuenta de iCloud | `Accounts3.sqlite` — `ZACCOUNT` | ✅ Identificado |
+| Propiedades de la cuenta | `ZACCOUNTPROPERTY` (NSKeyedArchiver) | ✅ Decodificado |
+| Tipos de cuenta y credenciales | `ZACCOUNTTYPE` | ✅ Mapeado |
+| SMS / iMessage | `sms.db` | ❌ Vacío (sin mensajes) |
+| Historial de llamadas | `CallHistory.storedata` | ❌ Vacío (sin llamadas) |
+| Fotos y vídeo | File system + `Photos.sqlite` | ✅ 3 archivos extraídos |
+| Metadatos (EXIF) | `IMG_0004.HEIC`, `IMG_0004.MOV`, `IMG_0005.PNG` | ✅ Analizado |
+| Notas | iBackup Viewer | ✅ 1 nota encontrada |
+| Contactos | `AddressBook.sqlitedb` | ❌ Vacío |
+| Multimedia eliminada | `Photos.sqlite` — `ZTRASHEDSTATE` | ✅ No se encontraron borrados |
+| Credenciales del Keychain | `keychain-backup.plist` | 🔒 Cifrado (AES-GCM) |
 
 ---
 
-## Key Findings
+## Hallazgos Clave
 
-### Primary Account
+### Cuenta Principal
 
 - **Email:** `vr.carlosiii@gmail.com`
-- **Type:** iCloud (`com.apple.account.AppleAccount`)
+- **Tipo:** iCloud (`com.apple.account.AppleAccount`)
 - **Apple ID:** 21130402639
 - **UUID:** `BE87C54F-B742-4394-9A56-E9E5933CE796`
-- **Last configured:** 2023-09-28 08:53:08 UTC
+- **Última configuración:** 2023-09-28 08:53:08 UTC
 
-### iCloud Services Active
+### Servicios de iCloud Activos
 
-Photos, Contacts, Calendars, Reminders, Mail, Notes, Bookmarks, Keychain, Find My iPad, Health, Messages in iCloud.
+Fotos, Contactos, Calendarios, Recordatorios, Mail, Notas, Marcadores, Keychain, Buscar mi iPad, Salud, Mensajes en iCloud.
 
-### Implications
+### Implicaciones
 
-1. User data is not limited to this device — iCloud copies exist
-2. Keychain sync suggests credentials may be recoverable from other Apple devices
-3. "Find My iPad" generates location logs relevant to the timeline
-4. With valid credentials, data preservation requests can be filed with Apple
+1. Los datos del usuario no se limitan a este dispositivo; existen copias en iCloud.
+2. La sincronización del Keychain sugiere que las credenciales podrían recuperarse desde otros dispositivos Apple.
+3. "Buscar mi iPad" genera registros de ubicación (*location logs*) relevantes para la línea de tiempo (*timeline*).
+4. Con credenciales válidas, se pueden emitir solicitudes de preservación de datos a Apple.
 
-### Media Evidence
+### Evidencia Multimedia
 
-| File | Type | Date | Device | Notes |
+| Archivo | Tipo | Fecha | Dispositivo | Notas |
 |---|---|---|---|---|
-| `IMG_0004.HEIC` | Live Photo | 2024-02-14 17:21 | iPad 8th Gen, iOS 14.4 | Classroom content, no GPS |
-| `IMG_0004.MOV` | Video (2.5s) | 2024-02-14 16:21 UTC | Same device | HEVC 1440×1080, matched Content ID |
-| `IMG_0005.PNG` | Screenshot | 2024-12-04 15:00 | Same device | "Trust This Computer?" dialog |
+| `IMG_0004.HEIC` | Live Photo | 2024-02-14 17:21 | iPad 8th Gen, iOS 14.4 | Contenido de clase, sin GPS |
+| `IMG_0004.MOV` | Vídeo (2.5s) | 2024-02-14 16:21 UTC | Mismo dispositivo | HEVC 1440×1080, Content ID coincidente |
+| `IMG_0005.PNG` | Captura de pantalla | 2024-12-04 15:00 | Mismo dispositivo | Diálogo de "Confiar en este ordenador" ("Trust This Computer?") |
 
 ---
 
-## Tools Used
+## Herramientas Utilizadas
 
-| Tool | Version | Purpose |
+| Herramienta | Versión | Propósito |
 |---|---|---|
-| iBackup Viewer | 1.6.4.90 | Forensic backup acquisition & browsing |
-| DB Browser for SQLite | 3.13.1 | Database analysis (`Accounts3.sqlite`, `Photos.sqlite`, etc.) |
-| ExifToolGui | 5.16.0.0 | EXIF metadata extraction from media files |
-| Python 3 | — | Custom decoders for NSKeyedArchiver data |
-| Dispositivo Apple | 1.6.4.90 | Initial device imaging |
+| iBackup Viewer | 1.6.4.90 | Adquisición y exploración forense del *backup* |
+| DB Browser for SQLite | 3.13.1 | Análisis de bases de datos (`Accounts3.sqlite`, `Photos.sqlite`, etc.) |
+| ExifToolGui | 5.16.0.0 | Extracción de metadatos EXIF de archivos multimedia |
+| Python 3 | — | Decodificadores personalizados (*custom decoders*) para datos NSKeyedArchiver |
+| Dispositivos Apple | 1.6.4.90 | Generación de la imagen inicial del dispositivo |
 
 ---
 
-## Repository Structure
+## Estructura del Repositorio
 
-```
+```text
 ipad-forensic-case-study/
-├── README.md                           # This file
-├── reporte_analisis_forense_ipad.md    # Full forensic report (Spanish)
-├── hallazgos_clave.md                  # Executive summary of findings
-├── metodologia.md                      # Forensic methodology applied
-├── evidencias.md                       # Tool outputs in visual ASCII format
+├── README.md                           # Este archivo
+├── reporte_analisis_forense_ipad.md    # Informe forense completo
+├── hallazgos_clave.md                  # Resumen ejecutivo de los hallazgos
+├── metodologia.md                      # Metodología forense aplicada
+├── evidencias.md                       # Salidas de herramientas en formato ASCII visual
 ├── scripts/
-│   ├── decodificar_nskeyed_es.py       # NSKeyedArchiver / Base64 / Plist decoder
-│   ├── buscar_cuentas.py               # Keychain account search from XML
-│   └── README.md                       # Scripts documentation
+│   ├── decodificar_nskeyed_es.py       # Decodificador de NSKeyedArchiver / Base64 / Plist
+│   ├── buscar_cuentas.py               # Búsqueda de cuentas del Keychain desde XML
+│   └── README.md                       # Documentación de los scripts
 ├── teoria/
-│   └── (theory documents for forensic contexts)
+│   └── (Documentos teóricos para contextos forenses)
 └── evidencias/
-    └── (screenshots from forensic tools)
-```
-
----
-
-## Methodology
-
-The forensic process followed a structured approach:
-
-1. **Acquisition** — Backup creation with iBackup Viewer 1.6.4.90
-2. **Account Analysis** — `Accounts3.sqlite` review (ZACCOUNT, ZACCOUNTPROPERTY, ZACCOUNTTYPE)
-3. **Communication Artifacts** — SMS (`sms.db`) and calls (`CallHistory.storedata`)
-4. **Media Extraction** — Photos, videos, and metadata analysis via ExifTool
-5. **Deleted Data** — `Photos.sqlite` trash state examination
-6. **Notes & Contacts** — Verification of stored and deleted records
-7. **Keychain** — Encrypted credential inspection
-
-> See [`metodologia.md`](metodologia.md) for detailed step-by-step procedure.
-
----
-
-## Usage
-
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/ipad-forensic-case-study.git
-
-# Navigate to scripts
-cd ipad-forensic-case-study/scripts
-
-# Decode a Base64 ZVALUE from Accounts3.sqlite
-python decodificar_nskeyed_es.py "YnBsaXN0MDDUAQIDBAU..."
-
-# Search for accounts in a keychain XML export
-python buscar_cuentas.py
-```
-
----
-
-## License
-
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
-
----
-
-<p align="center">
-  <b>Mobile Forensic Analysis · iOS · iPadOS · iCloud Forensics</b>
-</p>
+    └── (Capturas de pantalla de las herramientas forenses)
