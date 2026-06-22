@@ -1,255 +1,69 @@
-# Teoria Media Ipad
+## Teoría y Metodología: Análisis de Media en iPadOS
 
-Aquí tienes una explicación clara y profesional de cada tabla que aparece en tu captura:
+Este documento detalla la estructura extendida de la base de datos multimedia en dispositivos Apple, centrándose en la identificación de activos gráficos, análisis de metadatos de IA, sincronización en la nube y detección de elementos eliminados.
 
-Tabla
+## 1. Análisis Estructural de Tablas (Photos.sqlite)
 
-Descripción breve
+La base de datos contiene un gran volumen de tablas. A continuación, se clasifican según su función técnica y relevancia para la pericial.
 
-ACHANGE
+| Tabla | Descripción Técnica | Relevancia Forense |
+| :--- | :--- | :--- |
+| `ZASSET` | Tabla principal: cada foto y vídeo del dispositivo. | Crítica |
+| `ZADDITIONALASSETATTRIBUTES` | Atributos extendidos (incluye marcadores de borrado). | Crítica |
+| `ZGENERICALBUM` | Álbumes del usuario (incluye la papelera "Eliminado recientemente"). | Crítica |
+| `ZALBUMLIST` | Estructura y lista de álbumes del usuario. | Importante |
+| `ZCLOUDMASTER` | Identificadores de fotos sincronizadas en iCloud. | Importante |
+| `ZCLOUDRESOURCE` | Recursos asociados a fotos en iCloud (miniaturas, originales). | Importante |
+| `ZCLOUDFEEDENTRY` | Entradas de sincronización con iCloud Photos. | Opcional |
+| `ZCLOUDSHARED*` | Tablas relacionadas con álbumes compartidos y comentarios. | Opcional |
+| `ZASSETANALYSISSTATE` | Estado del análisis de IA local (caras, escenas). | Opcional |
+| `ZDETECTEDFACE*` | Huellas faciales, grupos y caras detectadas en fotos. | Opcional |
+| `ACHANGE` / `ATRANSACTION*` | Registros y transacciones internas de CoreData. | Sin relevancia |
+| `Z_METADATA` / `Z_PRIMARYKEY` | Metadatos y control de claves de SQLite. | Sin relevancia |
 
-Registro interno de cambios (CoreData). No contiene fotos.
 
-ATRANSACTION
 
-Transacciones internas de la base de datos. No contiene fotos.
+## 2. Metodología para la Detección de Borrados
 
-ATRANSACTIONSTRING
+Para determinar si existen fotografías o vídeos eliminados, el análisis debe centrarse en los siguientes campos y comportamientos del sistema.
 
-Cadenas asociadas a transacciones. No contiene fotos.
+### Indicadores en ZADDITIONALASSETATTRIBUTES
+* **`ZTRASHEDSTATE`**: Identifica el estado del archivo.
+    * `0` = Normal (Activo).
+    * `1` = Movido a "Eliminado recientemente".
+    * `2` = Eliminado permanentemente (Purgado).
+* **`ZPTPTRASHEDSTATE` / `ZTRASHEDDATE`**: Registra el *timestamp* exacto en el que el elemento fue enviado a la papelera.
 
-ZADDITIONALASSETATTRIBUTES
+### Indicadores en ZGENERICALBUM
+* **Búsqueda por `ZKIND`**: El valor `ZKIND = 2` corresponde al álbum del sistema "Recently Deleted" (Eliminado recientemente). Si este álbum contiene elementos o un recuento mayor a cero, existe evidencia de borrado.
 
-Atributos adicionales de cada foto/vídeo (incluye ZTRASHEDSTATE, ZTRASHEDDATE). Clave para detectar borrados.
+### Otros campos de control útiles:
+* `ZDELETERECORD`
+* `ZVISIBILITYSTATE`
+* `ZCLOUDDELETIONSTATE`
 
-ZALBUMLIST
+### Análisis de Secuencia de Archivos (Carrete)
+* La alteración en la nomenclatura secuencial de los archivos en la carpeta `DCIM` es un fuerte indicio de borrado físico.
+* *Ejemplo:* Si los registros muestran `IMG_0001`, `IMG_0002`, `IMG_0003`, `IMG_0007`, `IMG_0008`; la ausencia de los identificadores `4, 5 y 6` evidencia la eliminación de dichos archivos.
 
-Lista de álbumes del usuario (incluye “Eliminado”, “Favoritos”, etc.).
+## 3. Relaciones Lógicas entre Tablas Multimedia
 
-ZASSET
+Para reconstruir el historial o ubicación de un archivo multimedia, se deben ejecutar los siguientes *joins*:
 
-La tabla principal: cada foto y vídeo del dispositivo. Incluye tipo, fecha, flags, etc.
+| Tabla Origen | Relación | Tabla Destino | Explicación |
+| :--- | :--- | :--- | :--- |
+| `ZASSET` | 1:1 | `ZADDITIONALASSETATTRIBUTES` | Conecta la foto con sus atributos extendidos y estado de borrado. |
+| `ZASSET` | N:1 | `ZGENERICALBUM` | Identifica a qué álbum o álbumes pertenece una foto. |
+| `ZASSET` | 1:N | `ZCLOUDRESOURCE` | Vincula el archivo local con sus copias/recursos en iCloud. |
+| `ZASSET` | 1:N | `ZDETECTEDFACE` | Conecta la imagen con el análisis biométrico de rostros. |
+| `ZGENERICALBUM` | 1:N | `ZALBUMLIST` | Reconstruye la jerarquía y estructura de los álbumes. |
 
-ZASSETANALYSISSTATE
+## 4. Declaración para Informe Pericial
 
-Estado del análisis de IA (caras, escenas, etc.).
+*Este bloque está redactado para ser incluido directamente en la sección de metodología o conclusiones del dictamen pericial:*
 
-ZASSETDESCRIPTION
-
-Descripciones generadas por IA (no siempre presente).
-
-ZCLOUDFEEDENTRY
-
-Entradas de iCloud Photos (sincronización).
-
-ZCLOUDMASTER
-
-Identificadores de fotos en iCloud.
-
-ZCLOUDMASTERMEDIAMETADATA
-
-Metadatos de fotos en iCloud.
-
-ZCLOUDRESOURCE
-
-Recursos asociados a fotos en iCloud (miniaturas, originales).
-
-ZCLOUDSHAREDALBUMINVITATIONRECORD
-
-Invitaciones a álbumes compartidos.
-
-ZCLOUDSHAREDCOMMENT
-
-Comentarios en álbumes compartidos.
-
-ZCODEC
-
-Información sobre codecs de vídeo.
-
-ZCOMPUTEDASSETATTRIBUTES
-
-Atributos calculados (clasificación, IA, etc.).
-
-ZDEFERREDBUILDFACE
-
-Caras pendientes de procesar.
-
-ZDETECTEDFACE
-
-Caras detectadas en fotos.
-
-ZDETECTEDFACEGROUP
-
-Grupos de caras.
-
-ZDETECTEDFACEPRINT
-
-Huellas faciales (vectores).
-
-ZEXTENDEDATTRIBUTES
-
-Atributos extendidos de fotos.
-
-ZFACECROP
-
-Recortes de caras.
-
-ZFILESYSTEMBOOKMARK
-
-Referencias a archivos en el sistema.
-
-ZFILESYSTEMVOLUME
-
-Información de volúmenes.
-
-ZGENERICALBUM
-
-Álbumes del usuario (incluye “Eliminado recientemente”).
-
-ZGLOBALKEYVALUE
-
-Configuración interna.
-
-ZINTERNALRESOURCE
-
-Recursos internos de fotos.
-
-ZKEYWORD
-
-Palabras clave asignadas a fotos.
-
-ZLEGACYFACE
-
-Caras antiguas (formatos previos).
-
-Z_METADATA
-
-Metadatos de CoreData.
-
-Z_MODELCACHE
-
-Caché del modelo de IA.
-
-Z_PRIMARYKEY
-
-Control interno de claves.
-
-Estas son las que sí debes revisar para saber si hay fotos/vídeos borrados y para obtener información útil:
-
-Tabla
-
-Por qué es importante
-
-ZASSET
-
-Lista completa de fotos y vídeos.
-
-ZADDITIONALASSETATTRIBUTES
-
-Indica si una foto/vídeo está borrado (ZTRASHEDSTATE, ZTRASHEDDATE).
-
-ZGENERICALBUM
-
-Permite identificar el álbum “Recently Deleted”.
-
-ZALBUMLIST
-
-Relación entre álbumes y fotos.
-
-ZCLOUDMASTER
-
-Si hay sincronización con iCloud Photos.
-
-ZCLOUDRESOURCE
-
-Si hay fotos en iCloud aunque no estén en el dispositivo.
-
-Campos clave:
-
-ZTRASHEDSTATE
-
-0 = normal
-
-1 = movido a “Eliminado recientemente”
-
-2 = eliminado permanentemente
-
-ZPTPTRASHEDSTATE
-
-Fecha en la que se eliminó
-
-Busca álbum con:
-
-ZKIND = 2 → “Recently Deleted”
-
-Si tiene elementos → hubo fotos borradas.
-
-Campos útiles:
-
-ZDELETERECORD
-
-ZVISIBILITYSTATE
-
-ZCLOUDDELETIONSTATE
-
-Ejemplo:
-
-1, 2, 3, 7, 8, 9 → faltan 4, 5, 6 → fotos eliminadas.
-
-Tabla origen
-
-Relación
-
-Tabla destino
-
-Explicación
-
-ZASSET
-
-1:1
-
-ZADDITIONALASSETATTRIBUTES
-
-Atributos extendidos (incluye borrados).
-
-ZASSET
-
-N:1
-
-ZGENERICALBUM
-
-Relación foto ↔ álbum.
-
-ZASSET
-
-1:N
-
-ZCLOUDRESOURCE
-
-Recursos en iCloud.
-
-ZASSET
-
-1:N
-
-ZDETECTEDFACE
-
-Caras detectadas.
-
-ZGENERICALBUM
-
-1:N
-
-ZALBUMLIST
-
-Estructura de álbumes.
-
-Aquí tienes un texto profesional:
-
-Se analizó la base de datos Photos.sqlite, que contiene la información completa de las fotografías y vídeos del dispositivo, incluyendo metadatos, álbumes, atributos extendidos y sincronización con iCloud.
-
-Las tablas relevantes para el análisis forense fueron ZASSET, ZADDITIONALASSETATTRIBUTES, ZGENERICALBUM y ZALBUMLIST.
-
-La tabla ZADDITIONALASSETATTRIBUTES permite identificar elementos eliminados mediante los campos ZTRASHEDSTATE y ZTRASHEDDATE. La tabla ZGENERICALBUM permite verificar si existieron elementos en el álbum “Eliminado recientemente”.
-
-(Aquí añades tus conclusiones: si hay o no fotos borradas.)
+> "Se procedió al análisis técnico de la base de datos `Photos.sqlite`, la cual aloja la estructura principal de los activos multimedia (fotografías y vídeos) del dispositivo, abarcando metadatos, estructuración de álbumes, atributos extendidos y el estado de sincronización con el servicio iCloud.
+>
+> Para este análisis forense, se auditaron de manera prioritaria las tablas `ZASSET`, `ZADDITIONALASSETATTRIBUTES`, `ZGENERICALBUM` y `ZALBUMLIST`. Específicamente, la evaluación de la tabla `ZADDITIONALASSETATTRIBUTES` permitió verificar el estado de eliminación de los activos a través de los marcadores `ZTRASHEDSTATE` y `ZTRASHEDDATE`. Asimismo, la inspección de la tabla `ZGENERICALBUM` facilitó la comprobación de la existencia y contenido del contenedor temporal 'Eliminado recientemente'."
+>
+> **[Insertar conclusión específica del caso: Ej. Tras dicho análisis, se concluye la inexistencia de registros marcados como eliminados...]**
