@@ -1,203 +1,64 @@
-# Teoria Registros Ipad
+## Teoría y Metodología: Análisis de Registros de Interacción (CoreDuet)
 
-Estas son las tablas que aparecen en tu captura:
+Este documento detalla la estructura lógica de la base de datos `interactionC.db`, perteneciente al framework CoreDuet de Apple. Este artefacto es vital para reconstruir la actividad social del usuario, incluso cuando los historiales primarios han sido eliminados.
 
-ZCONTACTS
+* **Ruta:** `/private/var/mobile/Library/CoreDuet/People/interactionC.db`
 
-ZATTACHMENT
+## 1. Análisis Estructural de Tablas (interactionC.db)
 
-ZINTERACTIONS
+La base de datos contiene diversas tablas que gestionan tanto la heurística del dispositivo como los registros de usuario.
 
-ZKEYWORDS
+| Tabla | Descripción Técnica | Relevancia Forense |
+| :--- | :--- | :--- |
+| `ZINTERACTIONS` | Tabla principal: cada interacción registrada (llamada, mensaje, FaceTime). | Crítica |
+| `ZCONTACTS` | Lista de contactos involucrados (números, emails, identificadores). | Crítica |
+| `Z_1INTERACTIONS` | Tabla puente entre contactos y sus interacciones. | Importante |
+| `Z_2INTERACTIONRECIPIENT` | Tabla puente entre interacciones y destinatarios. | Importante |
+| `ZATTACHMENT` | Metadatos de adjuntos asociados a interacciones (frecuencia de uso muy baja). | Opcional |
+| `ZKEYWORDS` / `Z_3KEYWORDS` | Palabras clave usadas por Siri/Spotlight y su tabla relacional. | Opcional |
+| `ZVERSION` | Versión del modelo CoreDuet. | Sin relevancia |
+| `Z_METADATA` | Metadatos internos del esquema de CoreData. | Sin relevancia |
+| `Z_MODELCACHE` | Caché interna del modelo de aprendizaje heurístico. | Sin relevancia |
+| `Z_PRIMARYKEY` | Control interno de claves primarias. | Sin relevancia |
 
-ZVERSION
+## 2. Relaciones Lógicas para la Reconstrucción
 
-Z_1INTERACTIONS
+Para mapear correctamente quién interactuó con quién y cuándo, se deben cruzar las tablas de la siguiente manera:
 
-Z_2INTERACTIONRECIPIENT
+| Tabla Origen | Relación | Tabla Destino | Explicación |
+| :--- | :--- | :--- | :--- |
+| `ZINTERACTIONS` | 1:N | `Z_1INTERACTIONS` | Cada interacción puede estar asociada a uno o varios contactos. |
+| `Z_1INTERACTIONS` | N:1 | `ZCONTACTS` | Identifica con qué contacto específico se produjo la interacción. |
+| `ZINTERACTIONS` | 1:N | `Z_2INTERACTIONRECIPIENT` | Relaciona interacciones globales con destinatarios específicos. |
+| `Z_2INTERACTIONRECIPIENT` | N:1 | `ZCONTACTS` | Identifica inequívocamente al destinatario de la interacción. |
+| `ZINTERACTIONS` | 1:N | `Z_3KEYWORDS` | Asocia la interacción a los identificadores semánticos. |
+| `Z_3KEYWORDS` | N:1 | `ZKEYWORDS` | Recupera el texto de las palabras clave de Siri/Spotlight. |
 
-Z_3KEYWORDS
 
-Z_METADATA
 
-Z_MODELCACHE
+## 3. Evidencia Recuperable (Metadatos de Interacción)
 
-Z_PRIMARYKEY
+La importancia de esta base de datos radica en que **preserva el rastro de las comunicaciones aunque el usuario haya borrado llamadas o mensajes de las aplicaciones nativas**. Se pueden extraer los siguientes datos reales (sin necesidad de inferencias):
 
-Aquí tienes la explicación clara:
+* Fecha y hora exacta de la interacción.
+* Tipo de interacción (`call`, `sms`, `imessage`, `facetime`).
+* Identificador del contacto (Número de teléfono o Apple ID).
+* Frecuencia de interacción con un contacto específico.
+* Marca temporal (Timestamp) de la última vez que se interactuó.
+* Aplicación utilizada (`com.apple.mobilephone`, `com.apple.MobileSMS`, `com.apple.facetime`).
+* Duración de la comunicación (en el caso de llamadas de voz o vídeo).
 
-Tabla
+## 4. Declaración para Informe Pericial
 
-Descripción breve
+*Este bloque está redactado para ser incluido en la sección de metodología, alcance o hallazgos del dictamen:*
 
-ZCONTACTS
+> "Se procedió al análisis técnico de la base de datos `interactionC.db`, ubicada en la ruta `/private/var/mobile/Library/CoreDuet/People/`. Esta base de datos pertenece al framework CoreDuet de iOS/iPadOS y actúa como un registro secundario (log) que almacena metadatos de las interacciones del usuario con sus contactos (tales como llamadas, mensajes de texto y comunicaciones vía FaceTime).
+> 
+> Aunque esta base de datos no almacena el contenido en texto plano de las comunicaciones o grabaciones de audio, sí conserva información estructurada sobre la existencia, frecuencia, fecha y tipo de interacción. Por tanto, su escrutinio permite certificar actividad de comunicaciones incluso en escenarios donde los historiales principales (como `CallHistory.storedata` o `sms.db`) han sido eliminados intencionalmente. Para este análisis, se han correlacionado las tablas `ZINTERACTIONS`, `ZCONTACTS`, `Z_1INTERACTIONS` y `Z_2INTERACTIONRECIPIENT`, logrando reconstruir la actividad relacional del dispositivo."
 
-Lista de contactos con los que el usuario ha interactuado (números, emails, identificadores).
+## 5. Consideraciones Analíticas Adicionales
 
-ZATTACHMENT
-
-Metadatos de adjuntos asociados a interacciones (muy poco usado).
-
-ZINTERACTIONS
-
-La tabla principal: cada interacción registrada (llamada, mensaje, FaceTime, etc.).
-
-ZKEYWORDS
-
-Palabras clave asociadas a interacciones (para sugerencias de Siri/Spotlight).
-
-ZVERSION
-
-Versión del modelo CoreDuet. No contiene datos del usuario.
-
-Z_1INTERACTIONS
-
-Tabla puente entre contactos y sus interacciones.
-
-Z_2INTERACTIONRECIPIENT
-
-Tabla puente entre interacciones y destinatarios.
-
-Z_3KEYWORDS
-
-Tabla puente entre interacciones y palabras clave.
-
-Z_METADATA
-
-Metadatos de CoreData (versión del esquema).
-
-Z_MODELCACHE
-
-Caché interna del modelo de aprendizaje. No contiene datos útiles.
-
-Z_PRIMARYKEY
-
-Control interno de claves primarias. No contiene datos del usuario.
-
-Estas son las que sí debes revisar:
-
-Tabla
-
-Por qué es importante
-
-ZINTERACTIONS
-
-Registra cada interacción del usuario con contactos. Es la tabla clave.
-
-ZCONTACTS
-
-Identifica a las personas con las que hubo interacción.
-
-Z_1INTERACTIONS
-
-Relaciona contactos ↔ interacciones.
-
-Z_2INTERACTIONRECIPIENT
-
-Relaciona interacciones ↔ destinatarios.
-
-Estas tablas permiten reconstruir:
-
-Con quién interactuó el usuario
-
-Cuándo
-
-Cuántas veces
-
-Qué tipo de interacción fue
-
-Aunque los mensajes/llamadas estén borrados
-
-Aquí tienes la estructura relacional real:
-
-Tabla origen
-
-Relación
-
-Tabla destino
-
-Explicación
-
-ZINTERACTIONS
-
-1:N
-
-Z_1INTERACTIONS
-
-Cada interacción puede estar asociada a uno o varios contactos.
-
-Z_1INTERACTIONS
-
-N:1
-
-ZCONTACTS
-
-Permite saber con qué contacto se produjo la interacción.
-
-ZINTERACTIONS
-
-1:N
-
-Z_2INTERACTIONRECIPIENT
-
-Relaciona interacciones con destinatarios específicos.
-
-Z_2INTERACTIONRECIPIENT
-
-N:1
-
-ZCONTACTS
-
-Identifica al destinatario de la interacción.
-
-ZINTERACTIONS
-
-1:N
-
-Z_3KEYWORDS
-
-Palabras clave asociadas a la interacción.
-
-Z_3KEYWORDS
-
-N:1
-
-ZKEYWORDS
-
-Palabras clave usadas por Siri/Spotlight.
-
-Ejemplos reales (sin inventar):
-
-Fecha y hora de interacción
-
-Tipo de interacción (call, sms, imessage, facetime)
-
-Identificador del contacto
-
-Frecuencia de interacción
-
-Última vez que se interactuó
-
-App usada (Phone, Messages, FaceTime)
-
-Duración (si es llamada)
-
-👉 Incluso si el usuario borró llamadas o mensajes, aquí puede quedar rastro.
-
-Aquí tienes un texto profesional listo para copiar:
-
-Se analizó la base de datos interactionC.db, ubicada en /private/var/mobile/Library/CoreDuet/People/. Esta base de datos pertenece al framework CoreDuet de iOS y registra metadatos de interacciones del usuario con contactos (llamadas, mensajes, FaceTime, etc.).
-
-Aunque no almacena el contenido de las comunicaciones, sí conserva información sobre la existencia, frecuencia y tipo de interacción, incluso cuando los historiales de llamadas o mensajes han sido eliminados.
-
-Las tablas relevantes para el análisis son ZINTERACTIONS, ZCONTACTS, Z_1INTERACTIONS y Z_2INTERACTIONRECIPIENT, que permiten reconstruir la actividad social del usuario.
-
-Interpretar cada columna de ZINTERACTIONS
-
-Ver si hay actividad aunque el resto del dispositivo esté “limpio”
-
-Preparar una tabla final para tu informe
-
-Explicar cómo correlacionarlo con llamadas y mensajes
-
-Determinar si hubo borrado intencional
+Al examinar esta base de datos, el perito debe proceder a:
+* Interpretar cada columna de `ZINTERACTIONS` para catalogar la tipología del contacto.
+* Correlacionar los hallazgos de CoreDuet con las bases de datos de Mensajes y Llamadas para detectar discrepancias que evidencien un borrado intencional.
+* Exportar las relaciones a una matriz temporal (tabla cronológica) para presentar la cadencia de la actividad en el informe final.
