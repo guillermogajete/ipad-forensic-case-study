@@ -1,229 +1,53 @@
-# Teoria Extraccion Sms
+## Teoría y Metodología: Extracción de Mensajería (SMS/iMessage)
 
-Tablas sms.db
+Este documento detalla la estructura lógica de la base de datos `sms.db` en entornos iPadOS/iOS, esencial para la reconstrucción de conversaciones y la identificación de evidencia forense, incluyendo datos eliminados.
 
-Tabla
+* **Ruta:** `/private/var/mobile/Library/SMS/sms.db`
 
-Descripción breve
+## 1. Análisis de Tablas en sms.db
 
-_SqliteDatabaseProperties
+La base de datos se compone de múltiples tablas, clasificadas según su relevancia para la investigación forense.
 
-Metadatos internos de SQLite (versión, flags). No contiene datos útiles de mensajes.
+| Tabla | Descripción | Relevancia Forense |
+| :--- | :--- | :--- |
+| `message` | Contenido del mensaje, timestamps, estado y tipo. | Crítica |
+| `handle` | Identificadores de participantes (Teléfono/Apple ID). | Crítica |
+| `chat` | Conversaciones individuales o grupos. | Crítica |
+| `attachment` | Multimedia: fotos, vídeos, notas de audio, documentos. | Crítica |
+| `deleted_messages` | Metadatos de mensajes eliminados. | Oro forense |
+| `chat_message_join` | Relaciona mensajes con chats. | Importante |
+| `chat_handle_join` | Relaciona chats con participantes. | Importante |
+| `message_attachment_join` | Relaciona mensajes con adjuntos. | Importante |
+| `sync_deleted_*` | Rastros de elementos eliminados vía iCloud. | Útil |
 
-attachment
+*Nota: Tablas como `_SqliteDatabaseProperties`, `kvtable`, `sqlite_sequence` y `sqlite_stat1` son de control interno y carecen de valor probatorio.*
 
-Registra archivos adjuntos enviados/recibidos: fotos, vídeos, notas de audio, documentos. Incluye ruta, tipo MIME, tamaño.
+## 2. Relaciones Lógicas entre Tablas
 
-chat
+Para reconstruir una conversación, es necesario realizar *joins* entre las tablas siguiendo este esquema relacional:
 
-Representa cada conversación (individual o grupo). Contiene identificadores, nombre del grupo, flags, estado.
+| Tabla Origen | Relación | Tabla Destino | Explicación |
+| :--- | :--- | :--- | :--- |
+| `message` | 1:N | `chat_message_join` | Asociación de mensaje a su chat. |
+| `chat_message_join` | N:1 | `chat` | Identificación del contenedor de chat. |
+| `chat` | 1:N | `chat_handle_join` | Identificación de participantes en grupos. |
+| `chat_handle_join` | N:1 | `handle` | Detalle del contacto (número/Apple ID). |
+| `message` | 1:N | `message_attachment_join` | Vinculación de adjuntos al mensaje. |
+| `message_attachment_join` | N:1 | `attachment` | Acceso a metadatos del archivo adjunto. |
+| `message` | 1:1 | `deleted_messages` | Rastro de mensaje eliminado. |
+| `message` | 1:1 | `sync_deleted_messages` | Rastro de mensaje eliminado vía iCloud. |
+| `attachment` | 1:1 | `sync_deleted_attachments` | Adjuntos eliminados sincronizados. |
+| `chat` | 1:1 | `sync_deleted_chats` | Chats eliminados sincronizados. |
 
-chat_handle_join
+## 3. Metodología de Reconstrucción de Evidencia Eliminada
 
-Tabla puente que relaciona chats con participantes (handles).
+El análisis de registros eliminados es fundamental para la integridad del informe. Se deben consultar las siguientes tablas para verificar indicios de actividad borrada:
 
-chat_message_join
+* **`deleted_messages`**: Contiene metadatos de mensajes cuya entrada principal en `message` ha sido marcada como eliminada o purgada.
+* **`sync_deleted_messages` / `sync_deleted_chats` / `sync_deleted_attachments`**: Estas tablas son determinantes si el dispositivo presenta sincronización activa con iCloud, ya que registran el *id* de los elementos eliminados a través de la cuenta vinculada, proporcionando trazabilidad incluso cuando el contenido original ya no es accesible.
 
-Tabla puente que relaciona chats con mensajes.
+## 4. Consideraciones Técnicas Forenses
 
-deleted_messages
-
-Registra mensajes eliminados (solo metadatos básicos). Muy útil en informes.
-
-handle
-
-Lista de participantes: números de teléfono, Apple IDs, emails. Identifica a cada interlocutor.
-
-kvtable
-
-Tabla de pares clave‑valor usada por iMessage para configuraciones internas. No suele aportar evidencia.
-
-message
-
-La tabla principal: contiene cada mensaje enviado/recibido, timestamps, flags, estado, texto, tipo.
-
-message_attachment_join
-
-Relación entre mensajes y adjuntos. Un mensaje puede tener varios adjuntos.
-
-message_processing_task
-
-Tareas internas de procesamiento de mensajes. No suele aportar evidencia.
-
-sqlite_sequence
-
-Control interno de autoincremento. No contiene evidencia.
-
-sqlite_stat1
-
-Estadísticas de índices para el optimizador de SQLite. No contiene evidencia.
-
-sync_deleted_attachments
-
-Registra adjuntos eliminados sincronizados vía iCloud.
-
-sync_deleted_chats
-
-Registra chats eliminados sincronizados vía iCloud.
-
-sync_deleted_messages
-
-Registra mensajes eliminados sincronizados vía iCloud.
-
-TABLAS RECOMENDADAS PARA UN INFORME FORENSE
-
-Tabla
-
-Por qué es importante
-
-message
-
-Contiene el contenido del mensaje, timestamps, estado, tipo. Es la tabla central.
-
-handle
-
-Identifica a cada interlocutor (número, Apple ID). Necesaria para atribución.
-
-chat
-
-Permite saber si el mensaje pertenece a un chat individual o grupo.
-
-chat_message_join
-
-Relaciona cada mensaje con su chat. Necesaria para reconstruir conversaciones.
-
-chat_handle_join
-
-Permite saber quién participa en cada chat (grupos).
-
-attachment
-
-Evidencia multimedia: fotos, vídeos, notas de voz.
-
-message_attachment_join
-
-Relaciona mensajes con adjuntos.
-
-deleted_messages
-
-Oro puro en informes: evidencia de mensajes eliminados.
-
-sync_deleted_messages
-
-Indica mensajes eliminados sincronizados con iCloud.
-
-Opcionales pero útiles:
-
-Tabla
-
-Utilidad
-
-sync_deleted_chats
-
-Chats eliminados sincronizados.
-
-sync_deleted_attachments
-
-Adjuntos eliminados sincronizados.
-
-No relevantes:
-
-sqlite_stat1
-
-sqlite_sequence
-
-kvtable
-
-message_processing_task
-
-_SqliteDatabaseProperties
-
-TABLA — Relaciones entre tablas y cómo se conectan
-
-Tabla origen
-
-Relación
-
-Tabla destino
-
-Explicación
-
-message
-
-1:N
-
-chat_message_join
-
-Cada mensaje puede pertenecer a uno o varios chats (normalmente uno).
-
-chat_message_join
-
-N:1
-
-chat
-
-Permite saber a qué chat pertenece cada mensaje.
-
-chat
-
-1:N
-
-chat_handle_join
-
-Un chat puede tener varios participantes (grupos).
-
-chat_handle_join
-
-N:1
-
-handle
-
-Cada participante se identifica por su handle (número/Apple ID).
-
-message
-
-1:N
-
-message_attachment_join
-
-Un mensaje puede tener varios adjuntos.
-
-message_attachment_join
-
-N:1
-
-attachment
-
-Relaciona cada adjunto con su mensaje.
-
-message
-
-1:1
-
-deleted_messages
-
-Si un mensaje fue eliminado, aparece aquí.
-
-message
-
-1:1
-
-sync_deleted_messages
-
-Si fue eliminado y sincronizado vía iCloud.
-
-attachment
-
-1:1
-
-sync_deleted_attachments
-
-Adjuntos eliminados sincronizados.
-
-chat
-
-1:1
-
-sync_deleted_chats
-
-Chats eliminados sincronizados.
+* **Atribución**: La tabla `handle` es la única fuente fiable para la atribución de autoría. Se debe cruzar con la base de datos de contactos para identificar nombres reales.
+* **Integridad Multimedia**: Siempre verificar la integridad de los archivos vinculados en la tabla `attachment`. La existencia de un registro en `attachment` sin su archivo físico correspondiente puede indicar una eliminación selectiva o una falla en la sincronización.
+* **Contexto de Eliminación**: La presencia de registros en las tablas `sync_deleted_*` no garantiza la recuperación del contenido, pero constituye una prueba fehaciente de la existencia previa del dato y su posterior supresión mediante el ecosistema Apple.
